@@ -1,0 +1,37 @@
+services:
+  libwdi-x86:
+    build:
+      context: ../libwdi
+      dockerfile: docker/Dockerfile
+    image: xpcu-libwdi-builder:bookworm
+    environment:
+      LIBWDI_ARCH: x86
+    volumes:
+      - ../libwdi:/src:ro
+      - ../libwdi/dist:/out
+
+  libwdi-x64:
+    build:
+      context: ../libwdi
+      dockerfile: docker/Dockerfile
+    image: xpcu-libwdi-builder:bookworm
+    environment:
+      LIBWDI_ARCH: x64
+    volumes:
+      - ../libwdi:/src:ro
+      - ../libwdi/dist:/out
+
+  package:
+    build:
+      context: .
+      target: package
+    image: xilinx-platform-cable-deployer:bookworm
+    depends_on:
+      libwdi-x86:
+        condition: service_completed_successfully
+      libwdi-x64:
+        condition: service_completed_successfully
+    volumes:
+      - ./dist:/out
+      - ../libwdi/dist:/libwdi-dist:ro
+

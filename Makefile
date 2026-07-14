@@ -37,4 +37,7 @@ lib32:
 clean:
 	rm -f $(SOBJECTS)
 
-.PHONY: clean all lib32
+docker-packages:
+	sh ./docker-build.sh
+
+.PHONY: clean all lib32 docker-packages

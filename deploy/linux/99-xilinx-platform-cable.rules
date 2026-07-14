@@ -1,0 +1,10 @@
+# Xilinx Platform Cable USB / USB II, before and after FX2 firmware loading.
+ACTION!="add|change", GOTO="xpcu_rules_end"
+SUBSYSTEM!="usb", GOTO="xpcu_rules_end"
+
+ATTR{idVendor}=="03fd", ATTR{idProduct}=="000d", MODE="0660", GROUP="plugdev", TAG+="uaccess"
+ATTR{idVendor}=="03fd", ATTR{idProduct}=="0013", MODE="0660", GROUP="plugdev", TAG+="uaccess"
+ATTR{idVendor}=="03fd", ATTR{idProduct}=="0008", MODE="0660", GROUP="plugdev", TAG+="uaccess"
+
+LABEL="xpcu_rules_end"
+
