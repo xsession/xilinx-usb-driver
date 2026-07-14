@@ -32,8 +32,7 @@ WORKDIR /work
 COPY --from=linux-x64 /artifacts /artifacts
 COPY --from=linux-x86 /artifacts /artifacts
 COPY deploy ./deploy
-COPY README DEPLOYMENT.md ./
+COPY README DEPLOYMENT.md TROUBLESHOOTING.md ./
 COPY docker/package.sh /usr/local/bin/package-xpcu
 RUN chmod 0755 /usr/local/bin/package-xpcu /work/deploy/linux/*.sh /work/deploy/macos/*.sh
 ENTRYPOINT ["/usr/local/bin/package-xpcu"]
-

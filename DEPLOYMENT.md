@@ -49,6 +49,15 @@ libwdi helper. This intentionally replaces the vendor driver for these device
 IDs. Reinstall the AMD/Xilinx cable driver from Vivado if vendor applications
 later require it.
 
+The Windows build uses the reliable USB control-transfer JTAG path by default.
+The accelerated `0xA6` path can be tested explicitly by setting
+`OPENFPGALOADER_XPCU_ACCELERATED=1`; some XPCU firmware/WinUSB combinations
+stall endpoint zero when that command is used.
+
+For bootloader, driver-binding, firmware-reload, and JTAG-chain symptoms, see
+[TROUBLESHOOTING.md](TROUBLESHOOTING.md). The complete hardware debug record is
+in [`docs/xilinx-platform-cable-usb-windows-debug.md`](../../docs/xilinx-platform-cable-usb-windows-debug.md).
+
 ## macOS
 
 Extract the macOS ZIP and run `./install.sh`. macOS needs libusb and a

@@ -9,6 +9,7 @@ mkdir -p "$work_dir" "$output_dir"
 
 copy_docs() {
     cp /work/DEPLOYMENT.md "$1/README.md"
+    cp /work/TROUBLESHOOTING.md "$1/TROUBLESHOOTING.md"
 }
 
 linux_root="$work_dir/xilinx-platform-cable-linux"
@@ -50,4 +51,3 @@ for platform in linux windows macos; do
     )
     echo "Created $output_dir/$name.zip"
 done
-
