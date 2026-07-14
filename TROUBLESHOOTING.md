@@ -77,6 +77,21 @@ $env:OPENFPGALOADER_XPCU_CONTROL_BITBANG = '1'
 `OPENFPGALOADER_XPCU_ACCELERATED=1` is an experimental opt-in on Windows. If it
 times out, fully power-cycle the cable before another test.
 
+Testing the initialized PID with libusbK instead of WinUSB produced the same
+timeout, so changing the Windows backend alone does not make firmware `0404`
+accelerated. Bypassing USB alternate-setting selection also produced the same
+result.
+
+The reliable control fallback is much slower than the frequency message
+suggests: it uses two synchronous USB control writes per JTAG bit and additional
+reads for captured TDO. Large Spartan-6 uploads can consequently take close to
+an hour.
+
+Do not substitute `xusb_xp2.hex` for an embedded-loader (`03fd:000d`) cable. On
+the tested unit it reported invalid versions and no connection. Also verify any
+purported `xusb_xlp.hex` by content/version; the tested packaged copy was
+identical to `xusb_emb.hex`, not genuine XLP firmware.
+
 ## Firmware and cable status work, but detection says `found 0 devices`
 
 If the log shows all of the following, the host USB driver is operating:
