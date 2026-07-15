@@ -41,7 +41,7 @@ IDs. Reinstall the Vivado cable driver later if Xilinx vendor tools require it.
 
 The driver alone does not permanently initialize the cable. For embedded boot
 PID `03fd:000d`, openFPGALoader first uploads `xusb_emb.hex` version `0404`.
-When `xusb_xlp.hex` version `1705` is installed, current builds then load it as
+When `xusb_xlp.hex` version `0517` is installed, current builds then load it as
 a second-stage upgrade and enable accelerated transfers automatically.
 
 Make the firmware available with one of these methods:
@@ -64,16 +64,16 @@ state involved after a failed USB control request.
 
 ## Firmware reload fails after adding a newer HEX file
 
-Do not replace `xusb_emb.hex` with `xusb_xlp.hex`. XLP `1705` is a second-stage
+Do not replace `xusb_emb.hex` with `xusb_xlp.hex`. XLP `0517` is a second-stage
 upgrade and is not a standalone boot image for PID `03fd:000d`. The required
-pair is EMB `0404` as `xusb_emb.hex` and XLP `1705` as `xusb_xlp.hex`.
+pair is EMB `0404` as `xusb_emb.hex` and XLP `0517` as `xusb_xlp.hex`.
 
 ## Accelerated transfer times out or produces random IDCODEs
 
 On EMB firmware `0404`, accelerated XPCU command `0xA6` stalls endpoint zero.
 Any IDCODE read after that timeout can be meaningless. Current builds keep
 `0404` on the control-transfer fallback, but automatically use the accelerated
-engine when XLP firmware `1705` is running.
+engine when XLP firmware `0517` is running.
 
 Force the safe mode before opening the cable if needed:
 
@@ -92,10 +92,14 @@ suggests: it uses two synchronous USB control writes per JTAG bit and additional
 reads for captured TDO. Large Spartan-6 uploads can consequently take close to
 an hour.
 
+Do not change the XLP `0517` A6 request from its tested zero-based value `N-1`
+to `N`. The latter makes common 32-bit scans a multiple-of-four XPCU CPLD
+failure case, stalls bulk IN, and requires a full power cycle.
+
 Do not substitute `xusb_xp2.hex` for an embedded-loader (`03fd:000d`) cable. On
 the tested unit it reported invalid versions and no connection.
 
-With the proper `0404`/`1705` pair, the tested 1.48 MB Spartan-6 bitstream
+With the proper `0404`/`0517` pair, the tested 1.48 MB Spartan-6 bitstream
 programmed through WinUSB at 6 MHz in 4.124 seconds.
 
 ## Firmware and cable status work, but detection says `found 0 devices`
