@@ -39,8 +39,10 @@ IDs. Reinstall the Vivado cable driver later if Xilinx vendor tools require it.
 
 ## Cable stays at the bootloader identity
 
-The driver alone does not permanently initialize the cable. openFPGALoader
-must upload `xusb_emb.hex` or `xusb_xp2.hex` after a cold connection.
+The driver alone does not permanently initialize the cable. For embedded boot
+PID `03fd:000d`, openFPGALoader first uploads `xusb_emb.hex` version `0404`.
+When `xusb_xlp.hex` version `1705` is installed, current builds then load it as
+a second-stage upgrade and enable accelerated transfers automatically.
 
 Make the firmware available with one of these methods:
 
@@ -49,9 +51,8 @@ $env:OPENFPGALOADER_XUSB_FIRMWARE = 'C:\path\to\xusb_emb.hex'
 & $ofl -c xilinxPlatformCableUsb_alt --detect -v
 ```
 
-Alternatively use `--probe-firmware` or install the firmware in the normal
-openFPGALoader data directory. The deployment archive does not redistribute
-Xilinx firmware.
+Alternatively use `--probe-firmware` or install both files in the normal
+openFPGALoader data directory.
 
 Expected progress is firmware upload followed by a USB reload and PID `0008`.
 
@@ -61,11 +62,18 @@ Remove power completely from the cable and target, wait a few seconds, and
 reconnect. Then verify the driver again. A normal unplug may not reset every
 state involved after a failed USB control request.
 
+## Firmware reload fails after adding a newer HEX file
+
+Do not replace `xusb_emb.hex` with `xusb_xlp.hex`. XLP `1705` is a second-stage
+upgrade and is not a standalone boot image for PID `03fd:000d`. The required
+pair is EMB `0404` as `xusb_emb.hex` and XLP `1705` as `xusb_xlp.hex`.
+
 ## Accelerated transfer times out or produces random IDCODEs
 
-The Windows build uses control-transfer JTAG by default. On the tested Cable
-USB II, accelerated XPCU command `0xA6` stalled endpoint zero. Any IDCODE read
-after that timeout can be meaningless.
+On EMB firmware `0404`, accelerated XPCU command `0xA6` stalls endpoint zero.
+Any IDCODE read after that timeout can be meaningless. Current builds keep
+`0404` on the control-transfer fallback, but automatically use the accelerated
+engine when XLP firmware `1705` is running.
 
 Force the safe mode before opening the cable if needed:
 
@@ -74,13 +82,10 @@ $env:OPENFPGALOADER_XPCU_CONTROL_BITBANG = '1'
 & $ofl -c xilinxPlatformCableUsb_alt --detect -v --freq 750000
 ```
 
-`OPENFPGALOADER_XPCU_ACCELERATED=1` is an experimental opt-in on Windows. If it
-times out, fully power-cycle the cable before another test.
-
 Testing the initialized PID with libusbK instead of WinUSB produced the same
-timeout, so changing the Windows backend alone does not make firmware `0404`
-accelerated. Bypassing USB alternate-setting selection also produced the same
-result.
+`0404` timeout, so changing the Windows backend alone does not make that
+firmware accelerated. Bypassing USB alternate-setting selection also produced
+the same result.
 
 The reliable control fallback is much slower than the frequency message
 suggests: it uses two synchronous USB control writes per JTAG bit and additional
@@ -88,9 +93,10 @@ reads for captured TDO. Large Spartan-6 uploads can consequently take close to
 an hour.
 
 Do not substitute `xusb_xp2.hex` for an embedded-loader (`03fd:000d`) cable. On
-the tested unit it reported invalid versions and no connection. Also verify any
-purported `xusb_xlp.hex` by content/version; the tested packaged copy was
-identical to `xusb_emb.hex`, not genuine XLP firmware.
+the tested unit it reported invalid versions and no connection.
+
+With the proper `0404`/`1705` pair, the tested 1.48 MB Spartan-6 bitstream
+programmed through WinUSB at 6 MHz in 4.124 seconds.
 
 ## Firmware and cable status work, but detection says `found 0 devices`
 
@@ -112,7 +118,7 @@ before treating this as a hardware fault.
 With the corrected build, a single-device chain can emit a warning such as:
 
 ```text
-ignoring XPCU control-mode trailing scan word 0x0a001093
+ignoring XPCU trailing scan word 0x0a001093
 ```
 
 This is the unreliable end-of-chain marker from the slow fallback. It is
@@ -143,7 +149,9 @@ cable, then test using the newly built executable's full path.
 |---|---|
 | `OPENFPGALOADER_XUSB_FIRMWARE` | Explicit firmware HEX path |
 | `OPENFPGALOADER_XPCU_CONTROL_BITBANG=1` | Force safe control-transfer mode |
-| `OPENFPGALOADER_XPCU_ACCELERATED=1` | Test accelerated Windows mode |
+| `OPENFPGALOADER_XUSB_XLP_FIRMWARE` | Explicit XLP second-stage HEX path |
+| `OPENFPGALOADER_XPCU_XLP_UPGRADE=1` | Force the XLP second-stage reload |
+| `OPENFPGALOADER_XPCU_SKIP_XLP_UPGRADE=1` | Disable automatic cold-boot XLP reload |
 | `OPENFPGALOADER_FX2_VERBOSE_USB_ERRORS=1` | Enable detailed libusb errors |
 | `OPENFPGALOADER_XPCU_TDO_MASK` | Developer-only TDO mask diagnostic (`0x01` or `0x02`) |
 
