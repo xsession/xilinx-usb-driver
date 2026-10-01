@@ -7,8 +7,8 @@ services:
     environment:
       LIBWDI_ARCH: x86
     volumes:
-      - ../libwdi:/src:ro
-      - ../libwdi/dist:/out
+      - ${LIBWDI_HOST_SRC:-../libwdi}:/src:ro
+      - ${LIBWDI_HOST_DIST:-../libwdi/dist}:/out
 
   libwdi-x64:
     build:
@@ -18,8 +18,8 @@ services:
     environment:
       LIBWDI_ARCH: x64
     volumes:
-      - ../libwdi:/src:ro
-      - ../libwdi/dist:/out
+      - ${LIBWDI_HOST_SRC:-../libwdi}:/src:ro
+      - ${LIBWDI_HOST_DIST:-../libwdi/dist}:/out
 
   package:
     build:
@@ -32,6 +32,5 @@ services:
       libwdi-x64:
         condition: service_completed_successfully
     volumes:
-      - ./dist:/out
-      - ../libwdi/dist:/libwdi-dist:ro
-
+      - ${XPCU_HOST_DIST:-./dist}:/out
+      - ${LIBWDI_HOST_DIST:-../libwdi/dist}:/libwdi-dist:ro
